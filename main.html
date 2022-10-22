@@ -7,7 +7,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Map Assistant</title>
+    <title>Dungeon Assistant</title>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
         crossorigin="anonymous"></script>
@@ -16,7 +16,7 @@
 <body>
     <nav class="navbar navbar-dark bg-dark" style="height:8vh">
         <div class="container-fluid">
-            <a class="navbar-brand" href="#">Navbar</a>
+            <a class="navbar-brand" href="#">Dungeon Assistant</a>
         </div>
     </nav>
     <div class="container-fluid">
@@ -28,26 +28,31 @@
         <div class="row justify-content-center align-items-center">
             <div class="card" style="width: 75vw;">
                 <div class="card-body">
-                    <h5 id="r-name" class="card-title"></h5>
+                    <div class="row">
+                        <h3 id="r-name" class="card-title col v-align"></h3>
+                        <div class="col" id="r-size" style="text-align:end"></div>
+                    </div>
                     <hr>
-                    <h6 class="card-subtitle mb-2 text-muted">Description</h6>
-                    <p id="r-desc">lalalalala</p>
-                    <hr>
+                    <div id="desc-div" hidden>
+                        <h6 class="card-subtitle mb-2 text-muted">Details</h6>
+                        <div id="r-desc">
+                        </div>
+                        <hr>
+                    </div>
+                    <div id="monster-div" hidden>
+                        <h6 class="card-subtitle mb-2 text-muted">Monsters</h6>
+                        <div id="r-monster">
+                        </div>
+                        <hr>
+                    </div>
                     <h6 class="card-subtitle mb-2 text-muted">Doors</h6>
-                    <p id="r-desc"></p>
-                    <p class="card-text">Some quick example text to build on the card title and make up the bulk of the
-                        card's content.</p>
+                    <div id="r-doors">
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-
-    <!-- 
-        - should always show information about map details (floor,illumination,special,temperature,walls)
-        - get information on a specific room (id) 1-n
-        - get information on a specific corridor_feature (key) a-z
-     -->
     <script type="text/javascript">
         fetch('data.json')
             .then(function (response) {
@@ -67,6 +72,7 @@
                 .then(response => response.json())
                 .then(data => setTimeout(showRoom(id, data.rooms)));
         }
+
         function createRoomButtons(rooms) {
             const controlDiv = document.getElementById('control');
             const buttonDiv = document.createElement("div");
@@ -97,44 +103,120 @@
                 buttonDiv.appendChild(input_ele);
                 buttonDiv.appendChild(label_ele);
                 controlDiv.appendChild(buttonDiv);
-                // <input type="radio" class="btn-check" name="btnradio" id="btnradio3" autocomplete="off">
-                // <label class="btn btn-outline-primary" for="btnradio3">Radio 3</label>
             }
         }
 
         function showRoom(room_id, rooms) {
-            console.log(room_id)
+            console.log(room_id);
             const room = rooms.filter(r => `room-${r.id}` == room_id)[0];
+            console.log(room);
 
             const display_ele = document.getElementById('display');
             const display_name = document.getElementById('r-name');
             display_name.innerHTML = `Room ${room.id}`;
-            console.log(room);
+
+            createSizeDiv(room);
+            createRoomDesc(room);
+            createDoorList(room);
+            createRoomMonster(room);
         }
-            /** r-name
-             *  r-desc
-             *  r-doors
-             * 
-             * 
-             * /
-             * */
-            // console.log(room);
-            // rooms.forEach((room) => {
-            //     if(room) {
-            //         const cur_room_id = `room-${room.id}`
-            //         room_ele = document.getElementById(cur_room_id);
-            //         room_ele.checked = false
 
-            //         if(cur_room_id == room_id) {
-            //             room_ele.checked = true;
-            //             console.log(room);
-            //         }
-            // }
-            // })
-        
+        function createSizeDiv(room) {
+            const size_div = document.getElementById('r-size');
+            size_div.innerHTML = '';
+
+            const size_ul = document.createElement('ul');
+            size_ul.classList.add('no-bullets');
+
+            // const shape_ele = document.createElement('li');
+            // shape_ele.innerHTML = 'Shape: ' + room.shape;
+            // size_ul.appendChild(shape_ele);
+
+            const width_ele = document.createElement('li');
+            width_ele.innerHTML = `Width: ${room.width}ft`;
+            size_ul.appendChild(width_ele);
+
+            const height_ele = document.createElement('li');
+            height_ele.innerHTML = `Height: ${room.height}ft`;
+            size_ul.appendChild(height_ele);
+
+            size_div.appendChild(size_ul);
+        }
+
+        function createDoorList(room) {
+            const room_group_ele = document.getElementById('r-doors');
+            room_group_ele.innerHTML = '';
+            Object.entries(room.doors).forEach(([direction, doors]) => {
+                const direction_ele = document.createElement('h6');
+                direction_ele.innerHTML = direction.toUpperCase();
+                direction_ele.classList.add('mt-2');
+                const door_list = document.createElement('ul');
+                door_list.classList.add('no-bullets');
+
+                doors.forEach((door) => {
+                    const door_ele = document.createElement('li');
+                    door_ele.innerHTML = door.desc;
+                    if (Object.keys(door).includes('out_id')) {
+                        door_ele.innerHTML += `<br>&nbsp&nbsp -> leads to room ${door.out_id}<br>`;
+                    }
+                    door_list.appendChild(door_ele);
+                });
+
+                room_group_ele.appendChild(direction_ele);
+                room_group_ele.appendChild(door_list);
+            })
+        }
+
+        function createRoomMonster(room) {
+            const monster_div = document.getElementById('monster-div');
+            monster_div.hidden = true;
+            const room_monster_ele = document.getElementById('r-monster');
+            room_monster_ele.innerHTML = '';
+            if (Object.keys(room.contents).includes('detail')) {
+                if (Object.keys(room.contents.detail).includes('monster')) {
+                    const monster_p = document.createElement('p');
+                    monster_p.innerHTML = room.contents.detail.monster[0] + '<br><br>' + room.contents.detail.monster[2];
+                    room_monster_ele.appendChild(monster_p);
+
+                    monster_div.hidden = false;
+                }
+            }
+        }
+
+        function createRoomDesc(room) {
+            const desc_div = document.getElementById('desc-div');
+            desc_div.hidden = true;
+
+            const room_desc_ele = document.getElementById('r-desc');
+            room_desc_ele.innerHTML = '';
+            if (Object.keys(room.contents).includes('detail')) {
+                if (Object.keys(room.contents.detail).includes('room_features')) {
+                    const desc_p = document.createElement('p');
+                    desc_p.innerHTML = room.contents.detail.room_features + '<br>';
+                    room_desc_ele.append(desc_p);
+
+                    desc_div.hidden = false;
+                }
+            }
+        }
     </script>
-
-
 </body>
 
 </html>
+
+
+<style>
+    ul.no-bullets {
+        list-style-type: none;
+        /* Remove bullets */
+        padding: 0;
+        /* Remove padding */
+        margin: 0;
+        /* Remove margins */
+    }
+
+    .v-align {
+        margin-top: auto;
+        margin-bottom: auto;
+    }
+</style>
