@@ -14,19 +14,19 @@
 </head>
 
 <body>
-    <nav class="navbar navbar-dark bg-dark" style="height:8vh">
-        <div class="container-fluid">
+    <nav class="navbar navbar-dark bg-dark">
+        <div class="container-fluid justify-content-center align-items-center">
             <a class="navbar-brand" href="#">Dungeon Assistant</a>
         </div>
     </nav>
     <div class="container-fluid">
-        <div class="row justify-content-center align-items-center">
-            <div id="control" class="overflow-auto" style="width:100vw; padding:2vw">
+        <div class="row justify-content-center align-items-center mt-2">
+            <div id="control" class="overflow-auto py-2" style="width:85vw">
             </div>
 
         </div>
-        <div class="row justify-content-center align-items-center">
-            <div class="card" style="width: 75vw;">
+        <div class="row justify-content-center align-items-center mt-2">
+            <div class="card mb-4" style="width: 85vw;">
                 <div class="card-body">
                     <div class="row">
                         <h3 id="r-name" class="card-title col v-align"></h3>
@@ -67,10 +67,19 @@
             });
 
         function onRoomClick(room_label) {
+            const controlDiv = document.getElementById('control');
+            const scroll = controlDiv.scrollLeft;
+
             const id = room_label.getAttribute('for');
             fetch("data.json")
                 .then(response => response.json())
-                .then(data => setTimeout(showRoom(id, data.rooms)));
+                .then(data => showRoom(id, data.rooms))
+                .then(
+                    function () {
+                        controlDiv.scrollLeft = scroll;
+
+                    }
+                )
         }
 
         function createRoomButtons(rooms) {
@@ -79,6 +88,7 @@
             buttonDiv.classList.add('btn-group');
             buttonDiv.setAttribute('role', 'group');
             buttonDiv.setAttribute('id', 'rooms');
+            buttonDiv.style.width = 100+'%';
             // <div class="btn-group" role="group" aria-label="Basic radio toggle button group" id="rooms">
 
             for (let i = 0; i < rooms.length; i++) {
@@ -218,5 +228,10 @@
     .v-align {
         margin-top: auto;
         margin-bottom: auto;
+    }
+
+    .stop-scrolling {
+        height: 100%;
+        overflow: hidden;
     }
 </style>
