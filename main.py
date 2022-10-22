@@ -21,6 +21,7 @@ rooms[]
     south
     east
     west
+    polygon?
     contents{}
         detail{}
             room_features?
@@ -48,11 +49,20 @@ wandering_monsters{}
     4
     5
     6
-
-
-
 '''
-with open('data.json') as fn:
-    data = json.load(fn)
+def get_json_data(filename):
+    with open(filename) as fn:
+        return json.load(fn)
+        
 
-print(data)
+if __name__ == "__main__":
+    data = get_json_data('data.json')
+
+
+    for room in data['rooms']:
+        if not room:
+            # the first room value is always null
+            continue
+        
+        if room['shape'] not in ['square', 'polygon']:
+            print(room['shape'], room['id'])
