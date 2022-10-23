@@ -20,33 +20,41 @@
         </div>
     </nav>
     <div class="container-fluid">
-        <div class="row justify-content-center align-items-center mt-2">
-            <div id="control" class="overflow-auto py-2" style="width:85vw">
+        <div class="row justify-content-center align-items-center mt-4">
+            <div style="width:85vw">
+                <h6>Upload a donjon JSON file</h6>
+                <input onchange="uploadJson()" accept=".json" class="form-control" type="file" id="json-file">
             </div>
-
         </div>
-        <div class="row justify-content-center align-items-center mt-2">
-            <div class="card mb-4" style="width: 85vw;">
-                <div class="card-body">
-                    <div class="row">
-                        <h3 id="r-name" class="card-title col v-align"></h3>
-                        <div class="col" id="r-size" style="text-align:end"></div>
-                    </div>
-                    <hr>
-                    <div id="desc-div" hidden>
-                        <h6 class="card-subtitle mb-2 text-muted">Details</h6>
-                        <div id="r-desc">
+        <div id="all-content" hidden>
+            <div class="row justify-content-center align-items-center mt-2">
+                <div id="control" class="overflow-auto py-2" style="width:85vw">
+                </div>
+
+            </div>
+            <div class="row justify-content-center align-items-center mt-2">
+                <div class="card mb-4" style="width: 85vw;">
+                    <div class="card-body">
+                        <div class="row">
+                            <h3 id="r-name" class="card-title col v-align"></h3>
+                            <div class="col" id="r-size" style="text-align:end"></div>
                         </div>
                         <hr>
-                    </div>
-                    <div id="monster-div" hidden>
-                        <h6 class="card-subtitle mb-2 text-muted">Monsters</h6>
-                        <div id="r-monster">
+                        <div id="desc-div" hidden>
+                            <h6 class="card-subtitle mb-2 text-muted">Details</h6>
+                            <div id="r-desc">
+                            </div>
+                            <hr>
                         </div>
-                        <hr>
-                    </div>
-                    <h6 class="card-subtitle mb-2 text-muted">Doors</h6>
-                    <div id="r-doors">
+                        <div id="monster-div" hidden>
+                            <h6 class="card-subtitle mb-2 text-muted">Monsters</h6>
+                            <div id="r-monster">
+                            </div>
+                            <hr>
+                        </div>
+                        <h6 class="card-subtitle mb-2 text-muted">Doors</h6>
+                        <div id="r-doors">
+                        </div>
                     </div>
                 </div>
             </div>
@@ -54,18 +62,27 @@
     </div>
 
     <script type="text/javascript">
-        fetch('data.json')
-            .then(function (response) {
-                return response.json();
-            })
-            .then(function (data) {
-                createRoomButtons(data.rooms);
-                showRoom('room-1', data.rooms);
-            })
-            .catch(function (err) {
-                console.log('error: ' + err);
-            });
-
+        uploadJson();
+        function uploadJson() {
+            var file = document.getElementById("json-file").files[0];
+            if (file) {
+                var reader = new FileReader();
+                reader.readAsText(file, "UTF-8");
+                reader.onload = function (evt) {
+                    const data = JSON.parse(evt.target.result);
+                    // donjon outputs the rooms array with a null value at the beginning, it should be removed
+                    // data.rooms.shift();
+                    localStorage.setItem('rooms', JSON.stringify(data.rooms));
+                    setTimeout(() => {
+                        createRoomButtons();
+                        showRoom('room-1');
+                    });
+                }
+                reader.onerror = function (evt) {
+                    console.log('error reading json file', evt);
+                }
+            }
+        }
         function onRoomClick(room_label) {
             const controlDiv = document.getElementById('control');
             const scroll = controlDiv.scrollLeft;
@@ -77,18 +94,20 @@
                 .then(
                     function () {
                         controlDiv.scrollLeft = scroll;
-
                     }
                 )
         }
 
-        function createRoomButtons(rooms) {
+        function createRoomButtons() {
+            const rooms = JSON.parse(localStorage.getItem('rooms'));
             const controlDiv = document.getElementById('control');
+            controlDiv.innerHTML = '';
+
             const buttonDiv = document.createElement("div");
             buttonDiv.classList.add('btn-group');
             buttonDiv.setAttribute('role', 'group');
             buttonDiv.setAttribute('id', 'rooms');
-            buttonDiv.style.width = 100+'%';
+            buttonDiv.style.width = 100 + '%';
             // <div class="btn-group" role="group" aria-label="Basic radio toggle button group" id="rooms">
 
             for (let i = 0; i < rooms.length; i++) {
@@ -116,11 +135,10 @@
             }
         }
 
-        function showRoom(room_id, rooms) {
-            console.log(room_id);
+        function showRoom(room_id) {
+            const rooms = JSON.parse(localStorage.getItem('rooms'));
             const room = rooms.filter(r => `room-${r.id}` == room_id)[0];
             console.log(room);
-
             const display_ele = document.getElementById('display');
             const display_name = document.getElementById('r-name');
             display_name.innerHTML = `Room ${room.id}`;
